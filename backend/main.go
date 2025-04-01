@@ -3,6 +3,7 @@ package main
 import (
 	"bestodo/db"
 	"bestodo/handlers"
+	"bestodo/middleware"
 	"log"
 	"os"
 
@@ -42,6 +43,17 @@ func main() {
 	{
 		auth.POST("/signup", handlers.HandleSignUp(database))
 		auth.POST("/signin", handlers.HandleSignIn(database))
+	}
+
+	// Todo routes (protected)
+	todoHandler := handlers.NewTodoHandler(database)
+	todos := r.Group("/api/todos")
+	todos.Use(middleware.AuthMiddleware())
+	{
+		todos.GET("", todoHandler.GetTodos)
+		todos.POST("", todoHandler.CreateTodo)
+		todos.PATCH("/:id", todoHandler.ToggleTodoStatus)
+		todos.DELETE("/:id", todoHandler.DeleteTodo)
 	}
 
 	// Start server
